@@ -14,3 +14,8 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::resource('contact', 'ContactController', [
+	'except' => ['create', 'edit']
+]);
+Route::get('api/contact', 'ContactController@apiContact')->name('api.contact');
