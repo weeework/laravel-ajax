@@ -16,6 +16,6 @@ Route::get('/', function () {
 });
 
 Route::resource('contact', 'ContactController', [
-	'except' => ['create', 'edit']
+	'except' => ['create']
 ]);
 Route::get('api/contact', 'ContactController@apiContact')->name('api.contact');
