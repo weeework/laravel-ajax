@@ -101,6 +101,8 @@
         </div>
       </div>
 
+      @include('form')
+
     </div> <!-- /container -->
 
 
@@ -132,6 +134,38 @@
                         {data: 'action', name: 'action', orderable: false, searchable: false}
                       ]
                     });
+
+      function addForm() {
+        save_method = "add";
+        $('input[name=_method]').val('POST');
+        $('#modal-form').modal('show');
+        $('#modal-form form')[0].reset();
+        $('.modal-title').text('Add Contact');
+      }
+
+      $(function(){
+            $('#modal-form form').validator().on('submit', function (e) {
+                if (!e.isDefaultPrevented()){
+                    var id = $('#id').val();
+                    if (save_method == 'add') url = "{{ url('contact') }}";
+                    else url = "{{ url('contact') . '/' }}" + id;
+
+                    $.ajax({
+                        url : url,
+                        type : "POST",
+                        data : $('#modal-form form').serialize(),
+                        success : function($data) {
+                            $('#modal-form').modal('hide');
+                            table.ajax.reload();
+                        },
+                        error : function(){
+                            alert('Oops! Something Error!');
+                        }
+                    });
+                    return false;
+                }
+            });
+        });
     </script>
   </body>
 </html>
