@@ -18,6 +18,10 @@
     {{-- dataTables --}}
     <link href="{{ asset('assets/datatables/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
 
+      {{-- SweetAlert2 --}}
+      <script src="{{ asset('assets/sweetalert2/sweetalert2.min.js') }}"></script>
+      <link href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet">
+
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <link href="{{ asset('assets/bootstrap/css/ie10-viewport-bug-workaround.css') }}" rel="stylesheet">
 
@@ -166,21 +170,39 @@
       }
 
       function deleteData(id){
-            var popup = confirm("Are you sure for delete this data ?");
-            var csrf_token = $('meta[name="csrf-token"]').attr('content');
-            if (popup == true ){
-                $.ajax({
-                    url : "{{ url('contact') }}" + '/' + id,
-                    type : "POST",
-                    data : {'_method' : 'DELETE', '_token' : csrf_token},
-                    success : function(data) {
-                        table.ajax.reload();
-                    },
-                    error : function () {
-                        alert("Oops! Something Wrong!");
-                    }
-                })
-            }
+          var csrf_token = $('meta[name="csrf-token"]').attr('content');
+          swal({
+              title: 'Are you sure?',
+              text: "You won't be able to revert this!",
+              type: 'warning',
+              showCancelButton: true,
+              cancelButtonColor: '#d33',
+              confirmButtonColor: '#3085d6',
+              confirmButtonText: 'Yes, delete it!'
+          }).then(function () {
+              $.ajax({
+                  url : "{{ url('contact') }}" + '/' + id,
+                  type : "POST",
+                  data : {'_method' : 'DELETE', '_token' : csrf_token},
+                  success : function(data) {
+                      table.ajax.reload();
+                      swal({
+                          title: 'Success!',
+                          text: 'Data has been deleted!',
+                          type: 'success',
+                          timer: '1500'
+                      })
+                  },
+                  error : function () {
+                      swal({
+                          title: 'Oops...',
+                          text: 'Something went wrong!',
+                          type: 'error',
+                          timer: '1500'
+                      })
+                  }
+              });
+          });
         }
 
       $(function(){
@@ -197,9 +219,20 @@
                         success : function($data) {
                             $('#modal-form').modal('hide');
                             table.ajax.reload();
+                            swal({
+                                title: 'Success!',
+                                text: 'Data has been created!',
+                                type: 'success',
+                                timer: '1500'
+                            })
                         },
                         error : function(){
-                            alert('Oops! Something Error!');
+                            swal({
+                                title: 'Oops...',
+                                text: 'Something went wrong!',
+                                type: 'error',
+                                timer: '1500'
+                            })
                         }
                     });
                     return false;
