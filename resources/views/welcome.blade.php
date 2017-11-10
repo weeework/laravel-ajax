@@ -95,6 +95,7 @@
                                 <th width="30">No</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Photo</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -135,6 +136,7 @@
                         {data: 'id', name: 'id'},
                         {data: 'name', name: 'name'},
                         {data: 'email', name: 'email'},
+                        {data: 'show_photo', name: 'show_photo'},
                         {data: 'action', name: 'action', orderable: false, searchable: false}
                       ]
                     });
@@ -188,7 +190,7 @@
                       table.ajax.reload();
                       swal({
                           title: 'Success!',
-                          text: 'Data has been deleted!',
+                          text: data.message,
                           type: 'success',
                           timer: '1500'
                       })
@@ -196,7 +198,7 @@
                   error : function () {
                       swal({
                           title: 'Oops...',
-                          text: 'Something went wrong!',
+                          text: data.message,
                           type: 'error',
                           timer: '1500'
                       })
@@ -215,21 +217,24 @@
                     $.ajax({
                         url : url,
                         type : "POST",
-                        data : $('#modal-form form').serialize(),
-                        success : function($data) {
+//                        data : $('#modal-form form').serialize(),
+                        data: new FormData($("#modal-form form")[0]),
+                        contentType: false,
+                        processData: false,
+                        success : function(data) {
                             $('#modal-form').modal('hide');
                             table.ajax.reload();
                             swal({
                                 title: 'Success!',
-                                text: 'Data has been created!',
+                                text: data.message,
                                 type: 'success',
                                 timer: '1500'
                             })
                         },
-                        error : function(){
+                        error : function(data){
                             swal({
                                 title: 'Oops...',
-                                text: 'Something went wrong!',
+                                text: data.message,
                                 type: 'error',
                                 timer: '1500'
                             })

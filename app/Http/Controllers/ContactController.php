@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Mockery\Exception;
 use Yajra\DataTables\DataTables;
 
 use App\Contact;
@@ -28,12 +29,20 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        $data = [
-            'name' => $request['name'],
-            'email' => $request['email']
-        ];
+        $input = $request->all();
+        $input['photo'] = null;
 
-        return Contact::create($data);
+        if ($request->hasFile('photo')){
+            $input['photo'] = '/upload/photo/'.str_slug($input['name'], '-').'.'.$request->photo->getClientOriginalExtension();
+            $request->photo->move(public_path('/upload/photo/'), $input['photo']);
+        }
+
+        Contact::create($input);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contact Created'
+        ]);
     }
 
     /**
@@ -68,14 +77,25 @@ class ContactController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $input = $request->all();
         $contact = Contact::findOrFail($id);
-        
-        $contact->name = $request['name'];
-        $contact->email = $request['email'];
-        
-        $contact->update();
 
-        return $contact;
+        $input['photo'] = $contact->photo;
+
+        if ($request->hasFile('photo')){
+            if (!$contact->photo == NULL){
+                unlink(public_path($contact->photo));
+            }
+            $input['photo'] = '/upload/photo/'.str_slug($input['name'], '-').'.'.$request->photo->getClientOriginalExtension();
+            $request->photo->move(public_path('/upload/photo/'), $input['photo']);
+        }
+
+        $contact->update($input);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contact Updated'
+        ]);
     }
 
     /**
@@ -86,7 +106,18 @@ class ContactController extends Controller
      */
     public function destroy($id)
     {
-        return Contact::destroy($id);
+        $contact = Contact::findOrFail($id);
+
+        if (!$contact->photo == NULL){
+            unlink(public_path($contact->photo));
+        }
+
+        Contact::destroy($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contact Deleted'
+        ]);
     }
 
     public function apiContact()
@@ -94,10 +125,17 @@ class ContactController extends Controller
         $contact = Contact::all();
  
         return Datatables::of($contact)
-        ->addColumn('action', function($contact){
-            return '<a href="#" class="btn btn-info btn-xs"><i class="glyphicon glyphicon-eye-open"></i> Show</a> ' .
-                   '<a onclick="editForm('. $contact->id .')" class="btn btn-primary btn-xs"><i class="glyphicon glyphicon-edit"></i> Edit</a> ' .
-                   '<a onclick="deleteData('. $contact->id .')" class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i> Delete</a>';
-        })->make(true);
+            ->addColumn('show_photo', function($contact){
+                if ($contact->photo == NULL){
+                    return 'No Image';
+                }
+                return '<img class="rounded-square" width="50" height="50" src="'. url($contact->photo) .'" alt="">';
+            })
+            ->addColumn('action', function($contact){
+                return '<a href="#" class="btn btn-info btn-xs"><i class="glyphicon glyphicon-eye-open"></i> Show</a> ' .
+                       '<a onclick="editForm('. $contact->id .')" class="btn btn-primary btn-xs"><i class="glyphicon glyphicon-edit"></i> Edit</a> ' .
+                       '<a onclick="deleteData('. $contact->id .')" class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i> Delete</a>';
+            })
+            ->rawColumns(['show_photo', 'action'])->make(true);
     }
 }
